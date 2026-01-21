@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zultra Cloud</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* --- ZULTRA THEME --- */
+        :root {
+            --bg-color: #f0f2f5;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-sub: #777777;
+            --accent: #e056fd;
+            --accent-hover: #be2edd;
+            --border: #e0e0e0;
+            --danger: #ff4757;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --sidebar-bg: #1e1e1e;
+            --card-bg: #252525;
+            --text-main: #ffffff;
+            --text-sub: #aaaaaa;
+            --accent: #e056fd;
+            --border: #333333;
+            --shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; transition: background 0.3s, color 0.3s; }
+        body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+
+        /* --- LAYOUT --- */
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; }
+        .content-area { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 30px; }
+
+        /* --- UI ELEMENTS --- */
+        .app-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
+        h2 { margin-bottom: 20px; font-size: 1.8rem; }
+        h3 { margin-bottom: 15px; font-size: 1.1rem; color: var(--text-sub); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+
+        .nav-list { list-style: none; }
+        .nav-item { padding: 12px 16px; border-radius: 8px; cursor: pointer; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 12px; color: var(--text-sub); }
+        .nav-item:hover { background-color: rgba(0,0,0,0.05); color: var(--text-main); }
+        .nav-item.active { background-color: var(--accent); color: white; box-shadow: 0 4px 10px rgba(224, 86, 253, 0.3); }
+        
+        .card { background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); max-width: 700px; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        .input-field { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-color); color: var(--text-main); outline: none; }
+        .input-field:focus { border-color: var(--accent); }
+        
+        .btn { padding: 12px 24px; border-radius: 25px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: var(--accent); color: white; }
+
+        /* --- AUTH OVERLAY --- */
+        #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .login-box { display: none; text-align: center; width: 320px; }
+        .login-box.visible { display: block; }
+        
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-overlay">
+        <div id="loading-ui"><p style="font-weight:bold;">Loading Zultra Cloud...</p></div>
+        <div id="login-ui" class="login-box">
+            <h2>Sign In</h2>
+            <input type="email" id="login-email" class="input-field" placeholder="Email" style="margin-bottom:10px">
+            <input type="password" id="login-pass" class="input-field" placeholder="Password" style="margin-bottom:10px">
+            <button class="btn btn-primary" style="width:100%" onclick="manualLogin()">Log In</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="app-title"><i class="fas fa-cloud" style="color:var(--accent)"></i> Zultra Cloud</div>
+        <ul class="nav-list">
+            <li class="nav-item active" onclick="switchTab('profile', this)"><i class="fas fa-user"></i> Profile</li>
+            <li class="nav-item" onclick="switchTab('integrations', this)"><i class="fas fa-key"></i> Integrations</li>
+            <li class="nav-item" onclick="switchTab('storage', this)"><i class="fas fa-server"></i> Storage</li>
+        </ul>
+        <div style="margin-top:auto">
+            <li class="nav-item" onclick="logout()" style="color:#ff4757"><i class="fas fa-sign-out-alt"></i> Logout</li>
+        </div>
+    </div>
+
+    <div class="content-area">
+        
+        <div id="view-profile" class="view-section active">
+            <h2>Account</h2>
+            <div class="card">
+                <h3>Details</h3>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" id="profile-email" class="input-field" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="display-name" class="input-field">
+                </div>
+                <button class="btn btn-primary" onclick="updateProfile()">Save</button>
+            </div>
+        </div>
+
+        <div id="view-integrations" class="view-section">
+            <h2>Integrations</h2>
+            <div class="card">
+                <h3>Zultra AI Configuration</h3>
+                <p style="color:var(--text-sub); margin-bottom:20px;">
+                    Enter your Google Gemini API Key here to enable the chat features in the Zultra AI app.
+                    <br><small>Your key is stored privately in your account database.</small>
+                </p>
+                <div class="form-group">
+                    <label>Gemini API Key</label>
+                    <input type="password" id="api-key-field" class="input-field" placeholder="sk-...">
+                </div>
+                <button class="btn btn-primary" onclick="saveApiKey()">Save API Key</button>
+            </div>
+        </div>
+
+        <div id="view-storage" class="view-section">
+            <h2>Storage</h2>
+            <div class="card">
+                <h3>Browser Data</h3>
+                <p style="color:var(--text-sub)">Manage locally cached data.</p>
+                <button class="btn btn-primary" style="background:#ff4757" onclick="clearLibrary()">Clear All Data</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqhm6v1epzDxuMGYhd-7t_FPS-1ugF6sc",
+            authDomain: "zultra-media-player.firebaseapp.com",
+            projectId: "zultra-media-player",
+            storageBucket: "zultra-media-player.firebasestorage.app",
+            messagingSenderId: "1089626227358",
+            appId: "1:1089626227358:web:04721377413acf100cf18f",
+            measurementId: "G-YKLDV9NRSC"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // --- AUTH ---
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                document.getElementById('auth-overlay').style.display = 'none';
+                initUI(user);
+            } else {
+                document.getElementById('loading-ui').style.display = 'none';
+                document.getElementById('login-ui').classList.add('visible');
+            }
+        });
+
+        function manualLogin() {
+            const e = document.getElementById('login-email').value;
+            const p = document.getElementById('login-pass').value;
+            auth.signInWithEmailAndPassword(e, p).catch(e => alert(e.message));
+        }
+        function logout() { auth.signOut().then(() => window.location.reload()); }
+
+        function initUI(user) {
+            document.getElementById('profile-email').value = user.email;
+            document.getElementById('display-name').value = user.displayName || '';
+            
+            // Load Saved API Key
+            db.collection('users').doc(user.uid).get().then(doc => {
+                if(doc.exists && doc.data().gemini_api_key) {
+                    document.getElementById('api-key-field').value = doc.data().gemini_api_key;
+                }
+            });
+        }
+
+        // --- TABS ---
+        function switchTab(name, el) {
+            document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
+            document.getElementById('view-'+name).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        // --- SAVING ---
+        function updateProfile() {
+            auth.currentUser.updateProfile({ displayName: document.getElementById('display-name').value })
+                .then(() => alert("Profile Saved"));
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('api-key-field').value;
+            const user = auth.currentUser;
+            if(!user) return;
+
+            db.collection('users').doc(user.uid).set({
+                gemini_api_key: key
+            }, { merge: true }) // Merge so we don't overwrite other data
+            .then(() => alert("API Key Saved! You can now use Zultra AI."))
+            .catch(e => alert("Error saving key: " + e.message));
+        }
+
+        function clearLibrary() {
+            if(confirm("Clear local storage?")) {
+                indexedDB.deleteDatabase("ZultraDB");
+                alert("Done.");
+            }
+        }
+
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    </script>
+</body>
+</html>
