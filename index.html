@@ -3,222 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zultra Cloud</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
+    <title>Zultra ID | Secure Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- ZULTRA THEME --- */
         :root {
-            --bg-color: #f0f2f5;
-            --sidebar-bg: #ffffff;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-sub: #777777;
+            --bg-dark: #0f0f13;
+            --glass-bg: rgba(30, 30, 35, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --accent: #e056fd;
-            --accent-hover: #be2edd;
-            --border: #e0e0e0;
-            --danger: #ff4757;
-            --shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        body.dark-mode {
-            --bg-color: #121212;
-            --sidebar-bg: #1e1e1e;
-            --card-bg: #252525;
+            --accent-hover: #c83be4;
             --text-main: #ffffff;
-            --text-sub: #aaaaaa;
-            --accent: #e056fd;
-            --border: #333333;
-            --shadow: 0 4px 12px rgba(0,0,0,0.4);
+            --text-muted: #8e8e93;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; transition: background 0.3s, color 0.3s; }
-        body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% -20%, rgba(224, 86, 253, 0.15), transparent 60%);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
 
-        /* --- LAYOUT --- */
-        .sidebar { width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; }
-        .content-area { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 30px; }
+        .auth-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 24px 40px rgba(0,0,0,0.4);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-        /* --- UI ELEMENTS --- */
-        .app-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
-        h2 { margin-bottom: 20px; font-size: 1.8rem; }
-        h3 { margin-bottom: 15px; font-size: 1.1rem; color: var(--text-sub); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .logo-container {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4facfe 0%, var(--accent) 100%);
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 24px;
+            font-size: 32px;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 8px 16px rgba(224, 86, 253, 0.3);
+        }
 
-        .nav-list { list-style: none; }
-        .nav-item { padding: 12px 16px; border-radius: 8px; cursor: pointer; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 12px; color: var(--text-sub); }
-        .nav-item:hover { background-color: rgba(0,0,0,0.05); color: var(--text-main); }
-        .nav-item.active { background-color: var(--accent); color: white; box-shadow: 0 4px 10px rgba(224, 86, 253, 0.3); }
-        
-        .card { background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); max-width: 700px; }
-        
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
-        .input-field { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-color); color: var(--text-main); outline: none; }
-        .input-field:focus { border-color: var(--accent); }
-        
-        .btn { padding: 12px 24px; border-radius: 25px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-primary { background: var(--accent); color: white; }
+        h2 {
+            margin: 0 0 8px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
 
-        /* --- AUTH OVERLAY --- */
-        #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .login-box { display: none; text-align: center; width: 320px; }
-        .login-box.visible { display: block; }
-        
-        .view-section { display: none; }
-        .view-section.active { display: block; }
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin: 0 0 30px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: white;
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        button.primary-btn {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 10px;
+        }
+
+        button.primary-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        button.primary-btn:active {
+            transform: scale(0.98);
+        }
+
+        .links {
+            margin-top: 24px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+        }
+
+        .links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .links a:hover {
+            color: var(--accent);
+        }
+
+        /* View Switching Logic */
+        .auth-view {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .auth-view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #recaptcha-container {
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <div id="auth-overlay">
-        <div id="loading-ui"><p style="font-weight:bold;">Loading Zultra Cloud...</p></div>
-        <div id="login-ui" class="login-box">
-            <h2>Sign In</h2>
-            <input type="email" id="login-email" class="input-field" placeholder="Email" style="margin-bottom:10px">
-            <input type="password" id="login-pass" class="input-field" placeholder="Password" style="margin-bottom:10px">
-            <button class="btn btn-primary" style="width:100%" onclick="manualLogin()">Log In</button>
-        </div>
-    </div>
+    <div class="auth-card">
+        <div class="logo-container">Z</div>
 
-    <div class="sidebar">
-        <div class="app-title"><i class="fas fa-cloud" style="color:var(--accent)"></i> Zultra Cloud</div>
-        <ul class="nav-list">
-            <li class="nav-item active" onclick="switchTab('profile', this)"><i class="fas fa-user"></i> Profile</li>
-            <li class="nav-item" onclick="switchTab('integrations', this)"><i class="fas fa-key"></i> Integrations</li>
-            <li class="nav-item" onclick="switchTab('storage', this)"><i class="fas fa-server"></i> Storage</li>
-        </ul>
-        <div style="margin-top:auto">
-            <li class="nav-item" onclick="logout()" style="color:#ff4757"><i class="fas fa-sign-out-alt"></i> Logout</li>
-        </div>
-    </div>
-
-    <div class="content-area">
-        
-        <div id="view-profile" class="view-section active">
-            <h2>Account</h2>
-            <div class="card">
-                <h3>Details</h3>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="text" id="profile-email" class="input-field" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Display Name</label>
-                    <input type="text" id="display-name" class="input-field">
-                </div>
-                <button class="btn btn-primary" onclick="updateProfile()">Save</button>
-            </div>
-        </div>
-
-        <div id="view-integrations" class="view-section">
-            <h2>Integrations</h2>
-            <div class="card">
-                <h3>Zultra AI Configuration</h3>
-                <p style="color:var(--text-sub); margin-bottom:20px;">
-                    Enter your Google Gemini API Key here to enable the chat features in the Zultra AI app.
-                    <br><small>Your key is stored privately in your account database.</small>
-                </p>
-                <div class="form-group">
-                    <label>Gemini API Key</label>
-                    <input type="password" id="api-key-field" class="input-field" placeholder="sk-...">
-                </div>
-                <button class="btn btn-primary" onclick="saveApiKey()">Save API Key</button>
-            </div>
-        </div>
-
-        <div id="view-storage" class="view-section">
-            <h2>Storage</h2>
-            <div class="card">
-                <h3>Browser Data</h3>
-                <p style="color:var(--text-sub)">Manage locally cached data.</p>
-                <button class="btn btn-primary" style="background:#ff4757" onclick="clearLibrary()">Clear All Data</button>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBqhm6v1epzDxuMGYhd-7t_FPS-1ugF6sc",
-            authDomain: "zultra-media-player.firebaseapp.com",
-            projectId: "zultra-media-player",
-            storageBucket: "zultra-media-player.firebasestorage.app",
-            messagingSenderId: "1089626227358",
-            appId: "1:1089626227358:web:04721377413acf100cf18f",
-            measurementId: "G-YKLDV9NRSC"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // --- AUTH ---
-        auth.onAuthStateChanged(user => {
-            if(user) {
-                document.getElementById('auth-overlay').style.display = 'none';
-                initUI(user);
-            } else {
-                document.getElementById('loading-ui').style.display = 'none';
-                document.getElementById('login-ui').classList.add('visible');
-            }
-        });
-
-        function manualLogin() {
-            const e = document.getElementById('login-email').value;
-            const p = document.getElementById('login-pass').value;
-            auth.signInWithEmailAndPassword(e, p).catch(e => alert(e.message));
-        }
-        function logout() { auth.signOut().then(() => window.location.reload()); }
-
-        function initUI(user) {
-            document.getElementById('profile-email').value = user.email;
-            document.getElementById('display-name').value = user.displayName || '';
+        <div id="view-login" class="auth-view active">
+            <h2>Sign in to Zultra</h2>
+            <p class="subtitle">Use your Zultra ID to access the ecosystem.</p>
             
-            // Load Saved API Key
-            db.collection('users').doc(user.uid).get().then(doc => {
-                if(doc.exists && doc.data().gemini_api_key) {
-                    document.getElementById('api-key-field').value = doc.data().gemini_api_key;
-                }
-            });
-        }
+            <div class="input-group">
+                <input type="email" id="login-email" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="login-password" placeholder="Password" required>
+            </div>
+            
+            <button class="primary-btn" onclick="handleLogin()">Sign In</button>
+            
+            <div class="links">
+                <a onclick="switchView('view-reset')">Forgot password?</a>
+                <a onclick="switchView('view-signup')">Create Zultra ID</a>
+            </div>
+        </div>
 
-        // --- TABS ---
-        function switchTab(name, el) {
-            document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
-            document.getElementById('view-'+name).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-            el.classList.add('active');
-        }
+        <div id="view-signup" class="auth-view">
+            <h2>Create Zultra ID</h2>
+            <p class="subtitle">One account for Cloud, AI, and Media.</p>
+            
+            <div class="input-group">
+                <input type="email" id="signup-email" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="signup-password" placeholder="Create Password" required>
+            </div>
+            
+            <button class="primary-btn" onclick="handleSignup()">Create Account</button>
+            
+            <div class="links" style="justify-content: center;">
+                <a onclick="switchView('view-login')"><i class="fas fa-arrow-left"></i> Back to Sign In</a>
+            </div>
+        </div>
 
-        // --- SAVING ---
-        function updateProfile() {
-            auth.currentUser.updateProfile({ displayName: document.getElementById('display-name').value })
-                .then(() => alert("Profile Saved"));
-        }
+        <div id="view-reset" class="auth-view">
+            <h2>Reset Password</h2>
+            <p class="subtitle">Enter your email to receive a recovery link.</p>
+            
+            <div class="input-group">
+                <input type="email" id="reset-email" placeholder="Email Address" required>
+            </div>
+            
+            <button class="primary-btn" onclick="handleReset()">Send Link</button>
+            
+            <div class="links" style="justify-content: center;">
+                <a onclick="switchView('view-login')"><i class="fas fa-arrow-left"></i> Back to Sign In</a>
+            </div>
+        </div>
 
-        function saveApiKey() {
-            const key = document.getElementById('api-key-field').value;
-            const user = auth.currentUser;
-            if(!user) return;
+        <div id="view-mfa" class="auth-view">
+            <h2>Two-Step Verification</h2>
+            <p class="subtitle">Enter the 6-digit code sent to your phone.</p>
+            
+            <div class="input-group">
+                <input type="text" id="mfa-code" placeholder="000000" maxlength="6" style="text-align: center; font-size: 24px; letter-spacing: 8px;" required>
+            </div>
+            
+            <button class="primary-btn" onclick="verifyMFA()">Verify & Login</button>
+            
+            <div class="links" style="justify-content: center;">
+                <a onclick="switchView('view-login')">Cancel</a>
+            </div>
+        </div>
 
-            db.collection('users').doc(user.uid).set({
-                gemini_api_key: key
-            }, { merge: true }) // Merge so we don't overwrite other data
-            .then(() => alert("API Key Saved! You can now use Zultra AI."))
-            .catch(e => alert("Error saving key: " + e.message));
-        }
+        <div id="recaptcha-container"></div>
+    </div>
 
-        function clearLibrary() {
-            if(confirm("Clear local storage?")) {
-                indexedDB.deleteDatabase("ZultraDB");
-                alert("Done.");
-            }
-        }
+    <script type="module">
+        // 1. IMPORT FIREBASE (Ensure versions match your other apps)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, getMultiFactorResolver, PhoneAuthProvider, PhoneMultiFactorGenerator } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+        // 2. YOUR FIREBASE CONFIG (Paste your exact config here)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Global variables for MFA
+        let mfaResolver = null;
+        let mfaVerificationId = null;
+
+        // --- UI SWITCHING LOGIC ---
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.auth-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        };
+
+        // --- AUTH FUNCTIONS ---
+
+        window.handleLogin = function() {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+
+            signInWithEmailAndPassword(auth, email, pass)
+                .then((userCredential) => {
+                    // Success! No 2SV needed. Go to Dashboard.
+                    window.location.href = "cloud-dashboard.html"; // Replace with your actual dashboard file
+                })
+                .catch((error) => {
+                    if (error.code === 'auth/multi-factor-auth-required') {
+                        // 2SV IS REQUIRED! 
+                        mfaResolver = getMultiFactorResolver(auth, error);
+                        
+                        const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+                        const phoneInfoOptions = { multiFactorHint: mfaResolver.hints[0], session: mfaResolver.session };
+                        const phoneAuthProvider = new PhoneAuthProvider(auth);
+                        
+                        phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier)
+                            .then((verificationId) => {
+                                mfaVerificationId = verificationId;
+                                switchView('view-mfa'); // Switch UI to ask for the code
+                            });
+                    } else {
+                        alert("Login failed: " + error.message);
+                    }
+                });
+        };
+
+        window.verifyMFA = function() {
+            const code = document.getElementById('mfa-code').value;
+            const cred = PhoneAuthProvider.credential(mfaVerificationId, code);
+            const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
+            
+            mfaResolver.resolveSignIn(multiFactorAssertion)
+                .then((userCredential) => {
+                    // 2SV Success!
+                    window.location.href = "cloud-dashboard.html"; 
+                })
+                .catch((error) => {
+                    alert("Invalid code. Please try again.");
+                });
+        };
+
+        window.handleSignup = function() {
+            const email = document.getElementById('signup-email').value;
+            const pass = document.getElementById('signup-password').value;
+
+            createUserWithEmailAndPassword(auth, email, pass)
+                .then((userCredential) => {
+                    alert("Welcome to Zultra!");
+                    window.location.href = "cloud-dashboard.html"; 
+                })
+                .catch((error) => {
+                    alert("Error: " + error.message);
+                });
+        };
+
+        window.handleReset = function() {
+            const email = document.getElementById('reset-email').value;
+            
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    alert("Password reset email sent!");
+                    switchView('view-login');
+                })
+                .catch((error) => {
+                    alert("Error: " + error.message);
+                });
+        };
     </script>
 </body>
 </html>
