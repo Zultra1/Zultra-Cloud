@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zultra Cloud | Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0f13;
+            --glass-bg: rgba(30, 30, 35, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent: #e056fd;
+            --accent-hover: #c83be4;
+            --text-main: #ffffff;
+            --text-muted: #8e8e93;
+            --danger: #ff453a;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at top right, rgba(224, 86, 253, 0.1), transparent 40%);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: var(--glass-bg);
+            border-right: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #4facfe 0%, var(--accent) 100%);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+        }
+
+        .nav-link {
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .nav-link.active {
+            background: rgba(224, 86, 253, 0.15);
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .spacer {
+            flex-grow: 1;
+        }
+
+        .nav-link.danger {
+            color: var(--danger);
+        }
+
+        .nav-link.danger:hover {
+            background: rgba(255, 69, 58, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px 60px;
+            overflow-y: auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Cards Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .card h3 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: var(--text-muted);
+        }
+
+        .user-email {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .user-status {
+            font-size: 13px;
+            color: #32d74b;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Form Elements */
+        label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+            margin-bottom: 16px;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        button.save-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button.save-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Loading Overlay */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><i class="fas fa-spinner fa-spin"></i> &nbsp; Authenticating...</div>
+
+    <div class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">Z</div> Zultra
+        </div>
+        
+        <a class="nav-link active"><i class="fas fa-user-circle"></i> Account</a>
+        <a href="https://zultraai.zultra.cloud" class="nav-link"><i class="fas fa-brain"></i> Zultra AI</a>
+        <a href="https://zultramediaplayer.zultra.cloud" class="nav-link"><i class="fas fa-play"></i> Media Player</a>
+        
+        <div class="spacer"></div>
+        
+        <a onclick="handleSignOut()" class="nav-link danger"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Zultra ID Overview</h1>
+            <p class="subtitle">Manage your ecosystem settings and security.</p>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h3><i class="fas fa-id-badge"></i> Profile</h3>
+                <div class="profile-info">
+                    <div class="avatar"><i class="fas fa-user"></i></div>
+                    <div>
+                        <div class="user-email" id="display-email">Loading...</div>
+                        <div class="user-status"><i class="fas fa-check-circle"></i> Verified and Active</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-key"></i> Integrations</h3>
+                <p class="subtitle" style="margin-bottom: 15px; font-size: 13px;">Store your Gemini API key locally to use Zultra AI.</p>
+                
+                <label>Google Gemini API Key</label>
+                <input type="password" id="api-key-input" placeholder="AIzaSy...">
+                <button class="save-btn" onclick="saveApiKey()">Save Key to Device</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // 1. IMPORT FIREBASE
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        // 2. YOUR FIREBASE CONFIG (Must match exactly what you put in index.html)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // 3. AUTHENTICATION GATEKEEPER
+        // This listens to see if the user is logged in. 
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in! Hide loader and show email.
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('display-email').innerText = user.email;
+            } else {
+                // User is NOT signed in. Kick them back to the login page immediately.
+                window.location.href = "index.html"; 
+            }
+        });
+
+        // 4. LOGOUT LOGIC
+        window.handleSignOut = function() {
+            signOut(auth).then(() => {
+                // Successfully signed out, redirect to login page
+                window.location.href = "index.html";
+            }).catch((error) => {
+                alert("Error signing out: " + error.message);
+            });
+        };
+
+        // 5. API KEY STORAGE (Saves to local browser storage)
+        window.saveApiKey = function() {
+            const key = document.getElementById('api-key-input').value;
+            if(key) {
+                localStorage.setItem('zultra_gemini_key', key);
+                alert("API Key saved securely to your local device!");
+            }
+        };
+
+        // Load existing key if they already saved one
+        window.onload = function() {
+            const savedKey = localStorage.getItem('zultra_gemini_key');
+            if(savedKey) {
+                document.getElementById('api-key-input').value = savedKey;
+            }
+        };
+    </script>
+</body>
+</html>
